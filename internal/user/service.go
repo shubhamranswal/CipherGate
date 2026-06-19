@@ -1,0 +1,192 @@
+package user
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+)
+
+const (
+	MaxFailedAttempts = 5
+	LockoutDuration   = 15 * time.Minute
+)
+
+type Service struct {
+	repo Repository
+}
+
+func NewService(
+	repo Repository,
+) *Service {
+	return &Service{
+		repo: repo,
+	}
+}
+
+func (s *Service) Register(
+	ctx context.Context,
+	username string,
+	password string,
+) error {
+
+	hash, err := bcrypt.GenerateFromPassword(
+		[]byte(password),
+		bcrypt.DefaultCost,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	user := &User{
+		ID:             uuid.New().String(),
+		Username:       username,
+		PasswordHash:   string(hash),
+		MFAEnabled:     false,
+		FailedAttempts: 0,
+		CreatedAt:      time.Now(),
+	}
+
+	return s.repo.Create(ctx, user)
+}
+
+func (s *Service) UsernameAvailable(
+	ctx context.Context,
+	username string,
+) (bool, error) {
+
+	existing, err := s.repo.GetByUsername(
+		ctx,
+		username,
+	)
+
+	if err != nil {
+		return false, err
+	}
+
+	return existing == nil, nil
+}
+
+func (s *Service) ValidateUsername(
+	username string,
+) error {
+
+	if len(username) < 3 {
+		return errors.New(
+			"username must be at least 3 characters",
+		)
+	}
+
+	if len(username) > 50 {
+		return errors.New(
+			"username cannot exceed 50 characters",
+		)
+	}
+
+	return nil
+}
+
+func (s *Service) ValidatePassword(
+	password string,
+) error {
+
+	if len(password) < 8 {
+		return errors.New(
+			"password must be at least 8 characters",
+		)
+	}
+
+	return nil
+}
+
+func (s *Service) Login(
+	ctx context.Context,
+	username string,
+	password string,
+) (*User, error) {
+
+	user, err := s.repo.GetByUsername(
+		ctx,
+		username,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		return nil,
+			errors.New(
+				"invalid username or password",
+			)
+	}
+
+	if user.LockedUntil != nil &&
+		time.Now().Before(*user.LockedUntil) {
+
+		return nil,
+			fmt.Errorf(
+				"account locked until %s",
+				user.LockedUntil.Format(
+					"2006-01-02 15:04:05",
+				),
+			)
+	}
+
+	err = bcrypt.CompareHashAndPassword(
+		[]byte(user.PasswordHash),
+		[]byte(password),
+	)
+
+	if err != nil {
+
+		user.FailedAttempts++
+
+		if user.FailedAttempts >= MaxFailedAttempts {
+
+			lockUntil := time.Now().
+				Add(LockoutDuration)
+
+			user.LockedUntil =
+				&lockUntil
+
+			user.FailedAttempts = 0
+		}
+
+		if updateErr := s.repo.Update(
+			ctx,
+			user,
+		); updateErr != nil {
+
+			return nil,
+				updateErr
+		}
+
+		return nil,
+			errors.New(
+				"invalid username or password",
+			)
+	}
+
+	user.FailedAttempts = 0
+	user.LockedUntil = nil
+
+	now := time.Now()
+
+	user.LastLogin = &now
+
+	err = s.repo.Update(
+		ctx,
+		user,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}

@@ -5,7 +5,10 @@ import (
 	"log"
 
 	"github.com/joho/godotenv"
+	"github.com/shubhamranswal/ciphergate/internal/cli"
 	"github.com/shubhamranswal/ciphergate/internal/database"
+	"github.com/shubhamranswal/ciphergate/internal/migration"
+	"github.com/shubhamranswal/ciphergate/internal/user"
 )
 
 func printBanner() {
@@ -17,7 +20,7 @@ func printBanner() {
 \____/_/ .___/_/ /_/\___/_/   \____/\__,_/\__/\___/
        /_/
 
-`)
+	`)
 }
 
 func main() {
@@ -37,4 +40,17 @@ func main() {
 
 	fmt.Println("🔐 CipherGate v0.1")
 	fmt.Println("✅ Connected to PostgreSQL")
+
+	if err := migration.Run(db); err != nil {
+		log.Fatal(err)
+	}
+
+	userRepo := user.NewPostgresRepository(db)
+
+	userService := user.NewService(
+		userRepo,
+	)
+
+	cli.Login(userService)
+
 }
