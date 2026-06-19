@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shubhamranswal/ciphergate/internal/session"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -16,14 +17,18 @@ const (
 )
 
 type Service struct {
-	repo Repository
+	repo       Repository
+	sessionSvc *session.Service
 }
 
 func NewService(
 	repo Repository,
+	sessionSvc *session.Service,
 ) *Service {
+
 	return &Service{
-		repo: repo,
+		repo:       repo,
+		sessionSvc: sessionSvc,
 	}
 }
 
@@ -107,7 +112,7 @@ func (s *Service) Login(
 	ctx context.Context,
 	username string,
 	password string,
-) (*User, error) {
+) (*User, *session.Session, error) {
 
 	user, err := s.repo.GetByUsername(
 		ctx,
@@ -115,11 +120,11 @@ func (s *Service) Login(
 	)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if user == nil {
-		return nil,
+		return nil, nil,
 			errors.New(
 				"invalid username or password",
 			)
@@ -128,7 +133,7 @@ func (s *Service) Login(
 	if user.LockedUntil != nil &&
 		time.Now().Before(*user.LockedUntil) {
 
-		return nil,
+		return nil, nil,
 			fmt.Errorf(
 				"account locked until %s",
 				user.LockedUntil.Format(
@@ -162,11 +167,11 @@ func (s *Service) Login(
 			user,
 		); updateErr != nil {
 
-			return nil,
+			return nil, nil,
 				updateErr
 		}
 
-		return nil,
+		return nil, nil,
 			errors.New(
 				"invalid username or password",
 			)
@@ -185,8 +190,17 @@ func (s *Service) Login(
 	)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return user, nil
+	sessionObj, err := s.sessionSvc.Create(
+		ctx,
+		user.ID,
+	)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return user, sessionObj, nil
 }

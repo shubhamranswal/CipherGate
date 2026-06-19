@@ -35,7 +35,7 @@ func Login(
 		return
 	}
 
-	user, err := userService.Login(
+	user, sessionObj, err := userService.Login(
 		context.Background(),
 		username,
 		password,
@@ -54,5 +54,10 @@ func Login(
 	fmt.Printf(
 		"\n✅ Welcome %s\n",
 		user.Username,
+	)
+
+	fmt.Printf(
+		"Session ID: %s\n",
+		sessionObj.ID,
 	)
 }

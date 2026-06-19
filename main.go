@@ -8,6 +8,7 @@ import (
 	"github.com/shubhamranswal/ciphergate/internal/cli"
 	"github.com/shubhamranswal/ciphergate/internal/database"
 	"github.com/shubhamranswal/ciphergate/internal/migration"
+	"github.com/shubhamranswal/ciphergate/internal/session"
 	"github.com/shubhamranswal/ciphergate/internal/user"
 )
 
@@ -45,12 +46,24 @@ func main() {
 		log.Fatal(err)
 	}
 
-	userRepo := user.NewPostgresRepository(db)
+	userRepo := user.NewPostgresRepository(
+		db,
+	)
+
+	sessionRepo := session.NewPostgresRepository(
+		db,
+	)
+
+	sessionService := session.NewService(
+		sessionRepo,
+	)
 
 	userService := user.NewService(
 		userRepo,
+		sessionService,
 	)
 
-	cli.Login(userService)
-
+	cli.Login(
+		userService,
+	)
 }
