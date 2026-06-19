@@ -1,0 +1,11 @@
+.env
+
+ciphergate.exe
+ciphergate
+
+vendor/
+
+.idea/
+.vscode/
+
+*.log
