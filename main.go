@@ -66,9 +66,9 @@ func main() {
 
 	authCtx := &auth.Context{}
 
-	cli.Login(userService, authCtx)
-
-	fmt.Println(
-		authCtx.IsAuthenticated(),
+	cli.Run(
+		userService,
+		sessionService,
+		authCtx,
 	)
 }
