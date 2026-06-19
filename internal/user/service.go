@@ -53,7 +53,7 @@ func (s *Service) Register(
 		PasswordHash:   string(hash),
 		MFAEnabled:     false,
 		FailedAttempts: 0,
-		CreatedAt:      time.Now(),
+		CreatedAt:      time.Now().UTC(),
 	}
 
 	return s.repo.Create(ctx, user)
@@ -153,7 +153,7 @@ func (s *Service) Login(
 
 		if user.FailedAttempts >= MaxFailedAttempts {
 
-			lockUntil := time.Now().
+			lockUntil := time.Now().UTC().
 				Add(LockoutDuration)
 
 			user.LockedUntil =
@@ -180,7 +180,7 @@ func (s *Service) Login(
 	user.FailedAttempts = 0
 	user.LockedUntil = nil
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	user.LastLogin = &now
 

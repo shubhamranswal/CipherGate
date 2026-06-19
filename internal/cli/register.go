@@ -104,10 +104,11 @@ func Register(
 	}
 
 	var password string
+	var err error
 
 	for {
 
-		password, err := readPassword(
+		password, err = readPassword(
 			"Password: ",
 		)
 
@@ -179,7 +180,7 @@ func Register(
 		break
 	}
 
-	err := userService.Register(
+	err = userService.Register(
 		context.Background(),
 		username,
 		password,

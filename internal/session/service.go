@@ -29,7 +29,7 @@ func (s *Service) Create(
 	userID string,
 ) (*Session, error) {
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	session := &Session{
 		ID: uuid.New().String(),
