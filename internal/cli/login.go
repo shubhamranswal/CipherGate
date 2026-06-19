@@ -4,12 +4,23 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/shubhamranswal/ciphergate/internal/auth"
 	"github.com/shubhamranswal/ciphergate/internal/user"
 )
 
 func Login(
 	userService *user.Service,
+	authCtx *auth.Context,
 ) {
+
+	if authCtx.IsAuthenticated() {
+
+		fmt.Println(
+			"❌ Already logged in",
+		)
+
+		return
+	}
 
 	username, err := readInput(
 		"Username: ",
@@ -51,13 +62,20 @@ func Login(
 		return
 	}
 
+	authCtx.Login(
+		user,
+		sessionObj,
+	)
+
 	fmt.Printf(
 		"\n✅ Welcome %s\n",
 		user.Username,
 	)
 
 	fmt.Printf(
-		"Session ID: %s\n",
-		sessionObj.ID,
+		"Session expires: %s\n",
+		sessionObj.ExpiresAt.Format(
+			"2006-01-02 15:04:05",
+		),
 	)
 }

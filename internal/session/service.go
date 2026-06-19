@@ -99,3 +99,14 @@ func (s *Service) Validate(
 	return session, nil
 
 }
+
+func (s *Service) Deactivate(
+	ctx context.Context,
+	sessionID string,
+) error {
+
+	return s.repo.Deactivate(
+		ctx,
+		sessionID,
+	)
+}

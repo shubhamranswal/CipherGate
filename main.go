@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/joho/godotenv"
+	"github.com/shubhamranswal/ciphergate/internal/auth"
 	"github.com/shubhamranswal/ciphergate/internal/cli"
 	"github.com/shubhamranswal/ciphergate/internal/database"
 	"github.com/shubhamranswal/ciphergate/internal/migration"
@@ -63,7 +64,11 @@ func main() {
 		sessionService,
 	)
 
-	cli.Login(
-		userService,
+	authCtx := &auth.Context{}
+
+	cli.Login(userService, authCtx)
+
+	fmt.Println(
+		authCtx.IsAuthenticated(),
 	)
 }
