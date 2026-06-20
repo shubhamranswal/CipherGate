@@ -152,7 +152,6 @@ ciphergate/
 │        └── config.go
 │
 ├── migrations/
-│   ├── 000_schema_migrations.sql
 │   ├── 001_create_users.sql
 │   └── 002_create_sessions.sql
 │

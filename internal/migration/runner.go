@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 )
 
 func Run(db *sql.DB) error {
@@ -30,12 +29,7 @@ func Run(db *sql.DB) error {
 
 	for _, file := range files {
 
-		if strings.Contains(file, "schema_migrations") {
-			continue
-		}
-
 		var exists bool
-
 		err = db.QueryRow(
 			`SELECT EXISTS(
 				SELECT 1
