@@ -1,125 +1,454 @@
 # CipherGate
 
-A secure containerized CLI authentication system built with Go, PostgreSQL, Docker, and TOTP-based Multi-Factor Authentication.
+A secure, containerized Command-Line Authentication System built with Go, PostgreSQL, Docker, and TOTP-based Multi-Factor Authentication (MFA).
+
+CipherGate provides user registration, authentication, session management, account lockout protection, and Google/Microsoft Authenticator compatible MFA through an interactive CLI experience.
+
+---
 
 ## Features
 
-* User registration and authentication
-* Secure password hashing using bcrypt
-* TOTP-based Multi-Factor Authentication (Google/Microsoft Authenticator compatible)
-* Account lockout after repeated failed login attempts
-* Session management with configurable timeout
-* PostgreSQL persistence
-* Interactive CLI with command history and tab completion
-* Dockerized deployment
+### Authentication
+
+* User registration
+* Secure login with username and password
+* Password hashing using bcrypt
+* Account lockout after multiple failed login attempts
+* Last login tracking
+* Current login tracking
+
+### Multi-Factor Authentication
+
+* Enable TOTP-based MFA
+* Disable MFA
+* Compatible with:
+
+  * Google Authenticator
+  * Microsoft Authenticator
+  * Other RFC 6238 compatible applications
+
+* QR Code enrollment directly in terminal
+* MFA verification during login
+
+### Session Management
+
+* Session creation after successful authentication
+* Configurable session timeout
+* Session expiration validation
+* Session logout support
+
+### Interactive CLI
+
+* Interactive command shell
+* Command history
+* Tab completion
+* Context-aware commands
+* Helpful error messages and feedback
+
+### Persistence
+
+* PostgreSQL database
+* Dockerized database deployment
 * Database migrations
+* Persistent Docker volumes
+
+---
 
 ## Architecture
 
 CipherGate follows a layered architecture:
 
-CLI Layer
-→ Service Layer
-→ Repository Layer
-→ PostgreSQL
+```text
+┌─────────────┐
+│     CLI     │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│  Services   │
+├─────────────┤
+│ User        │
+│ Session     │
+│ MFA         │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Repository  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ PostgreSQL  │
+└─────────────┘
+```
 
-### Components
+---
 
-* CLI: Interactive terminal interface
-* User Service: Authentication and user management
-* MFA Service: TOTP generation and verification
-* Session Service: Session lifecycle management
-* Repository Layer: Database access abstraction
-* PostgreSQL: Persistent storage
+## Project Structure
 
-## Requirements
+```text
+ciphergate/
+│
+├── internal/
+│   ├── auth/
+│   │   └── context.go
+│   │
+│   ├── cli/
+│   │   ├── login.go
+│   │   ├── logout.go
+│   │   ├── register.go
+│   │   ├── whoami.go
+│   │   ├── enable_2fa.go
+│   │   ├── disable_2fa.go
+│   │   ├── shell.go
+│   │   ├── session_guard.go
+│   │   └── helpers.go
+│   │
+│   ├── database/
+│   │   └── postgres.go
+│   │
+│   ├── migration/
+│   │   └── runner.go
+│   │
+│   ├── mfa/
+│   │   └── service.go
+│   │
+│   ├── session/
+│   │   ├── model.go
+│   │   ├── repository.go
+│   │   ├── postgres_repository.go
+│   │   └── service.go
+│   │
+│   └── user/
+│       ├── model.go
+│       ├── repository.go
+│       ├── postgres_repository.go
+│       └── service.go
+│
+├── migrations/
+│   ├── 000_schema_migrations.sql
+│   ├── 001_create_users.sql
+│   └── 002_create_sessions.sql
+│
+├── .env
+├── Dockerfile
+├── docker-compose.yml
+├── go.mod
+├── go.sum
+├── main.go
+└── README.md
+```
+
+---
+
+## Technology Stack
+
+| Component          | Technology                                     |
+| ------------------ | ---------------------------------------------- |
+| Language           | Go                                             |
+| Database           | PostgreSQL                                     |
+| Containerization   | Docker                                         |
+| Password Hashing   | bcrypt                                         |
+| MFA                | TOTP                                           |
+| CLI                | Readline                                       |
+| Database Driver    | lib/pq                                         |
+
+---
+
+## Prerequisites
 
 * Go 1.24+
 * Docker
 * Docker Compose
 
-## Setup
+---
 
-Clone the repository:
+## Getting Started
+
+### Clone Repository
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/shubhamranswal/CipherGate.git
 cd ciphergate
 ```
 
-Start PostgreSQL:
+---
+
+### Configure Environment
+
+Create a `.env` file:
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=admin
+DB_PASSWORD=admin
+DB_NAME=ciphergate
+DB_SSLMODE=disable
+```
+
+---
+
+### Start PostgreSQL
 
 ```bash
 docker compose up -d
 ```
 
-Run the application:
+Verify:
+
+```bash
+docker ps
+```
+
+---
+
+### Run Application
 
 ```bash
 go run .
 ```
 
+Expected startup:
+
+```text
+🔐 CipherGate v0.1
+✅ Connected to PostgreSQL
+```
+
+---
+
+## Quick Demo
+
+### Register User
+
+```text
+ciphergate> register
+
+Username: shubham
+Password:
+Confirm Password:
+
+✅ User registered successfully
+```
+
+---
+
+### Login
+
+```text
+ciphergate> login
+
+Username: shubham
+Password:
+
+✅ Login successful
+```
+
+---
+
+### Enable MFA
+
+```text
+ciphergate(shubham)> enable-2fa
+```
+
+Scan the QR code using Microsoft Authenticator or Google Authenticator and enter the generated code.
+
+---
+
+### Logout
+
+```text
+ciphergate(shubham)> logout
+```
+
+---
+
+### Login With MFA
+
+```text
+ciphergate> login
+
+Username: shubham
+Password:
+
+🔐 MFA Verification Required
+
+TOTP Code: 123456
+
+✅ Login successful
+```
+
+---
+
 ## Available Commands
 
 ### Guest Commands
 
-* register
-* login
-* help
-* exit
+| Command  | Description                |
+| -------- | -------------------------- |
+| register | Create a new user account  |
+| login    | Authenticate user          |
+| help     | Display available commands |
+| exit     | Exit application           |
+
+---
 
 ### Authenticated Commands
 
-* whoami
-* enable-2fa
-* disable-2fa
-* logout
-* help
+| Command     | Description                  |
+| ----------- | ---------------------------- |
+| whoami      | Display current user details |
+| enable-2fa  | Enable MFA                   |
+| disable-2fa | Disable MFA                  |
+| logout      | Logout current session       |
+| help        | Display available commands   |
 
-## MFA Setup
+---
 
-1. Login
-2. Run enable-2fa
-3. Scan the displayed QR code using Microsoft Authenticator or Google Authenticator
-4. Enter the generated TOTP code
-5. MFA is now enabled
+## User Information
+
+After successful login:
+
+```text
+👤 User Details
+────────────────────────────────────────
+
+Username
+Registration Date
+MFA Status
+Last Login
+Session Status
+Session Expiration Time
+```
+
+---
 
 ## Security Features
 
+### Password Security
+
+* Passwords never stored in plaintext
 * bcrypt password hashing
-* TOTP-based MFA
-* Session expiration
-* Account lockout protection
-* Password verification using constant-time bcrypt comparison
+* Secure password verification
+
+### Account Lockout
+
+After multiple failed login attempts:
+
+```text
+Maximum Failed Attempts: 5
+Lockout Duration: 15 Minutes
+```
+
+Account access is temporarily blocked until the lockout period expires.
+
+### Multi-Factor Authentication
+
+* RFC 6238 compliant TOTP
+* QR code onboarding
+* Compatible with standard authenticator applications
+
+### Session Security
+
+* Session IDs generated using UUIDs
+* Session expiration support
+* Session validation before authenticated operations
+* Automatic logout on session expiration
+
+---
 
 ## Database Schema
 
-### users
+### Users Table
 
-* id
-* username
-* password_hash
-* mfa_enabled
-* mfa_secret
-* failed_attempts
-* locked_until
-* current_login
-* last_login
-* created_at
+```sql
+users
+(
+    id,
+    username,
+    password_hash,
+    mfa_enabled,
+    mfa_secret,
+    failed_attempts,
+    locked_until,
+    current_login,
+    last_login,
+    created_at
+)
+```
 
-### sessions
+---
 
-* id
-* user_id
-* active
-* created_at
-* expires_at
+### Sessions Table
 
-## Future Improvements
+```sql
+sessions
+(
+    id,
+    user_id,
+    created_at,
+    expires_at,
+    active
+)
+```
+
+---
+
+## Session Management
+
+Default session timeout: 30 Minutes
+
+Expired sessions are automatically invalidated and require re-authentication.
+
+---
+
+## Docker
+
+Start services:
+
+```bash
+docker compose up -d
+```
+
+Stop services:
+
+```bash
+docker compose down
+```
+
+Remove services and volumes:
+
+```bash
+docker compose down -v
+```
+
+---
+
+## Manual Testing Performed
+
+* User registration
+* Duplicate username validation
+* Password validation
+* Successful login
+* Failed login
+* Account lockout
+* Session creation
+* Session expiration
+* Logout
+* MFA enable
+* MFA disable
+* MFA login verification
+* QR code enrollment
+* Database persistence
+* Docker startup and shutdown
+
+---
+
+## Future Enhancements
 
 * Password reset workflow
-* Admin roles and permissions
+* Role-based access control
 * Audit logging
-* Refresh tokens
-* Email verification
-* Rate limiting

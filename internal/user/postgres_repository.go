@@ -10,15 +10,10 @@ type PostgresRepository struct {
 }
 
 func NewPostgresRepository(db *sql.DB) *PostgresRepository {
-	return &PostgresRepository{
-		db: db,
-	}
+	return &PostgresRepository{db: db}
 }
 
-func (r *PostgresRepository) Create(
-	ctx context.Context,
-	user *User,
-) error {
+func (r *PostgresRepository) Create(ctx context.Context, user *User) error {
 
 	query := `
 	INSERT INTO users (
@@ -48,10 +43,7 @@ func (r *PostgresRepository) Create(
 	return err
 }
 
-func (r *PostgresRepository) GetByUsername(
-	ctx context.Context,
-	username string,
-) (*User, error) {
+func (r *PostgresRepository) GetByUsername(ctx context.Context, username string) (*User, error) {
 
 	query := `
 	SELECT
@@ -99,10 +91,7 @@ func (r *PostgresRepository) GetByUsername(
 	return &user, nil
 }
 
-func (r *PostgresRepository) Update(
-	ctx context.Context,
-	user *User,
-) error {
+func (r *PostgresRepository) Update(ctx context.Context, user *User) error {
 
 	query := `
 	UPDATE users

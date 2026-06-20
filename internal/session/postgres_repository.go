@@ -9,18 +9,11 @@ type PostgresRepository struct {
 	db *sql.DB
 }
 
-func NewPostgresRepository(
-	db *sql.DB,
-) *PostgresRepository {
-	return &PostgresRepository{
-		db: db,
-	}
+func NewPostgresRepository(db *sql.DB) *PostgresRepository {
+	return &PostgresRepository{db: db}
 }
 
-func (r *PostgresRepository) Create(
-	ctx context.Context,
-	session *Session,
-) error {
+func (r *PostgresRepository) Create(ctx context.Context, session *Session) error {
 
 	query := `
 	INSERT INTO sessions (
@@ -48,10 +41,7 @@ func (r *PostgresRepository) Create(
 	return err
 }
 
-func (r *PostgresRepository) GetByID(
-	ctx context.Context,
-	id string,
-) (*Session, error) {
+func (r *PostgresRepository) GetByID(ctx context.Context, id string) (*Session, error) {
 
 	query := `
 	SELECT
@@ -89,10 +79,7 @@ func (r *PostgresRepository) GetByID(
 	return &session, nil
 }
 
-func (r *PostgresRepository) Deactivate(
-	ctx context.Context,
-	id string,
-) error {
+func (r *PostgresRepository) Deactivate(ctx context.Context, id string) error {
 
 	_, err := r.db.ExecContext(
 		ctx,

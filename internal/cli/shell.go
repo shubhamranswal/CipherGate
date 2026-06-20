@@ -12,27 +12,14 @@ import (
 	"github.com/shubhamranswal/ciphergate/internal/user"
 )
 
-func getPrompt(
-	authCtx *auth.Context,
-) string {
-
+func getPrompt(authCtx *auth.Context) string {
 	if authCtx.IsAuthenticated() {
-
-		return fmt.Sprintf(
-			"ciphergate(%s)> ",
-			authCtx.User.Username,
-		)
+		return fmt.Sprintf("ciphergate(%s)> ", authCtx.User.Username)
 	}
-
 	return "ciphergate> "
 }
 
-func Run(
-	userService *user.Service,
-	sessionService *session.Service,
-	mfaService *mfa.Service,
-	authCtx *auth.Context,
-) {
+func Run(userService *user.Service, sessionService *session.Service, mfaService *mfa.Service, authCtx *auth.Context) {
 
 	completer := readline.NewPrefixCompleter(
 		readline.PcItem("register"),
@@ -65,76 +52,42 @@ func Run(
 	for {
 
 		fmt.Println()
-
-		rl.SetPrompt(
-			getPrompt(authCtx),
-		)
+		rl.SetPrompt(getPrompt(authCtx))
 
 		input, err := rl.Readline()
-
 		if err == readline.ErrInterrupt {
-
 			if len(input) == 0 {
-
-				fmt.Println(
-					"\n👋 Goodbye!",
-				)
-
+				fmt.Println("\n👋 Goodbye!")
 				return
 			}
-
 			continue
 		}
 
 		if err != nil {
-
-			fmt.Printf(
-				"❌ %v\n",
-				err,
-			)
-
+			fmt.Printf("❌ %v\n", err)
 			continue
 		}
 
-		command := strings.TrimSpace(
-			strings.ToLower(input),
-		)
+		command := strings.TrimSpace(strings.ToLower(input))
 
 		if authCtx.IsAuthenticated() {
-
-			if !ValidateSession(
-				authCtx,
-				sessionService,
-			) {
+			if !ValidateSession(authCtx, sessionService) {
 				continue
 			}
 
 			switch command {
 
 			case "whoami":
-				WhoAmI(
-					authCtx,
-				)
+				WhoAmI(authCtx)
 
 			case "logout":
-				Logout(
-					authCtx,
-					sessionService,
-				)
+				Logout(authCtx, sessionService)
 
 			case "enable-2fa":
-				Enable2FA(
-					authCtx,
-					userService,
-					mfaService,
-				)
+				Enable2FA(authCtx, userService, mfaService)
 
 			case "disable-2fa":
-				Disable2FA(
-					authCtx,
-					userService,
-					mfaService,
-				)
+				Disable2FA(authCtx, userService, mfaService)
 
 			case "help":
 				printUserHelp()
@@ -143,14 +96,8 @@ func Run(
 				continue
 
 			default:
-				fmt.Printf(
-					"❌ Unknown command: %s\n",
-					command,
-				)
-
-				fmt.Println(
-					"💡 Type 'help' to view available commands.",
-				)
+				fmt.Printf("❌ Unknown command: %s\n", command)
+				fmt.Println("💡 Type 'help' to view available commands.")
 			}
 
 		} else {
@@ -158,39 +105,24 @@ func Run(
 			switch command {
 
 			case "register":
-				Register(
-					userService,
-				)
+				Register(userService)
 
 			case "login":
-				Login(
-					userService,
-					sessionService,
-					mfaService,
-					authCtx,
-				)
+				Login(userService, sessionService, mfaService, authCtx)
 
 			case "help":
 				printGuestHelp()
 
 			case "exit":
-				fmt.Println(
-					"👋 Goodbye!",
-				)
+				fmt.Println("👋 Goodbye!")
 				return
 
 			case "":
 				continue
 
 			default:
-				fmt.Printf(
-					"❌ Unknown command: %s\n",
-					command,
-				)
-
-				fmt.Println(
-					"💡 Type 'help' to view available commands.",
-				)
+				fmt.Printf("❌ Unknown command: %s\n", command)
+				fmt.Println("💡 Type 'help' to view available commands.")
 			}
 		}
 	}

@@ -13,10 +13,7 @@ type Context struct {
 	Session *session.Session
 }
 
-func (c *Context) Login(
-	user *user.User,
-	session *session.Session,
-) {
+func (c *Context) Login(user *user.User, session *session.Session) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 

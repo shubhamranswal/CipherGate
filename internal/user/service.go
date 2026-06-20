@@ -16,31 +16,21 @@ const (
 	LockoutDuration   = 15 * time.Minute
 )
 
-var ErrMFARequired = errors.New(
-	"mfa required",
-)
+var ErrMFARequired = errors.New("mfa required")
 
 type Service struct {
 	repo       Repository
 	sessionSvc *session.Service
 }
 
-func NewService(
-	repo Repository,
-	sessionSvc *session.Service,
-) *Service {
-
+func NewService(repo Repository, sessionSvc *session.Service) *Service {
 	return &Service{
 		repo:       repo,
 		sessionSvc: sessionSvc,
 	}
 }
 
-func (s *Service) Register(
-	ctx context.Context,
-	username string,
-	password string,
-) error {
+func (s *Service) Register(ctx context.Context, username string, password string) error {
 
 	hash, err := bcrypt.GenerateFromPassword(
 		[]byte(password),
@@ -63,15 +53,9 @@ func (s *Service) Register(
 	return s.repo.Create(ctx, user)
 }
 
-func (s *Service) UsernameAvailable(
-	ctx context.Context,
-	username string,
-) (bool, error) {
+func (s *Service) UsernameAvailable(ctx context.Context, username string) (bool, error) {
 
-	existing, err := s.repo.GetByUsername(
-		ctx,
-		username,
-	)
+	existing, err := s.repo.GetByUsername(ctx, username)
 
 	if err != nil {
 		return false, err
@@ -80,28 +64,20 @@ func (s *Service) UsernameAvailable(
 	return existing == nil, nil
 }
 
-func (s *Service) ValidateUsername(
-	username string,
-) error {
+func (s *Service) ValidateUsername(username string) error {
 
 	if len(username) < 3 {
-		return errors.New(
-			"username must be at least 3 characters",
-		)
+		return errors.New("username must be at least 3 characters")
 	}
 
 	if len(username) > 50 {
-		return errors.New(
-			"username cannot exceed 50 characters",
-		)
+		return errors.New("username cannot exceed 50 characters")
 	}
 
 	return nil
 }
 
-func (s *Service) ValidatePassword(
-	password string,
-) error {
+func (s *Service) ValidatePassword(password string) error {
 
 	if len(password) < 8 {
 		return errors.New(
@@ -112,26 +88,16 @@ func (s *Service) ValidatePassword(
 	return nil
 }
 
-func (s *Service) Login(
-	ctx context.Context,
-	username string,
-	password string,
-) (*User, *session.Session, error) {
+func (s *Service) Login(ctx context.Context, username string, password string) (*User, *session.Session, error) {
 
-	user, err := s.repo.GetByUsername(
-		ctx,
-		username,
-	)
+	user, err := s.repo.GetByUsername(ctx, username)
 
 	if err != nil {
 		return nil, nil, err
 	}
 
 	if user == nil {
-		return nil, nil,
-			errors.New(
-				"invalid username or password",
-			)
+		return nil, nil, errors.New("invalid username or password")
 	}
 
 	if user.LockedUntil != nil &&
@@ -140,9 +106,7 @@ func (s *Service) Login(
 		return nil, nil,
 			fmt.Errorf(
 				"account locked until %s",
-				user.LockedUntil.Format(
-					"2006-01-02 15:04:05 UTC",
-				),
+				user.LockedUntil.Format("2006-01-02 15:04:05 UTC"),
 			)
 	}
 
@@ -152,60 +116,28 @@ func (s *Service) Login(
 	)
 
 	if err != nil {
-
 		user.FailedAttempts++
-
 		if user.FailedAttempts >= MaxFailedAttempts {
-
-			lockUntil := time.Now().UTC().
-				Add(LockoutDuration)
-
-			user.LockedUntil =
-				&lockUntil
-
+			lockUntil := time.Now().UTC().Add(LockoutDuration)
+			user.LockedUntil = &lockUntil
 			user.FailedAttempts = 0
 		}
 
-		if updateErr := s.repo.Update(
-			ctx,
-			user,
-		); updateErr != nil {
-
-			return nil, nil,
-				updateErr
+		if updateErr := s.repo.Update(ctx, user); updateErr != nil {
+			return nil, nil, updateErr
 		}
 
-		return nil, nil,
-			errors.New(
-				"invalid username or password",
-			)
+		return nil, nil, errors.New("invalid username or password")
 	}
 
 	user.FailedAttempts = 0
 	user.LockedUntil = nil
 
-	now := time.Now().UTC()
-
-	user.LastLogin = user.CurrentLogin
-	user.CurrentLogin = &now
-
-	err = s.repo.Update(
-		ctx,
-		user,
-	)
-
-	if err != nil {
-		return nil, nil, err
-	}
-
 	if user.MFAEnabled {
 		return user, nil, ErrMFARequired
 	}
 
-	sessionObj, err := s.sessionSvc.Create(
-		ctx,
-		user.ID,
-	)
+	sessionObj, err := s.sessionSvc.Create(ctx, user.ID)
 
 	if err != nil {
 		return nil, nil, err
@@ -214,28 +146,13 @@ func (s *Service) Login(
 	return user, sessionObj, nil
 }
 
-func (s *Service) Update(
-	ctx context.Context,
-	user *User,
-) error {
-
-	return s.repo.Update(
-		ctx,
-		user,
-	)
+func (s *Service) Update(ctx context.Context, user *User) error {
+	return s.repo.Update(ctx, user)
 }
 
-func (s *Service) UpdateLastLogin(
-	ctx context.Context,
-	user *User,
-) error {
-
+func (s *Service) UpdateLoginTimestamps(ctx context.Context, user *User) error {
 	now := time.Now().UTC()
-
-	user.LastLogin = &now
-
-	return s.repo.Update(
-		ctx,
-		user,
-	)
+	user.LastLogin = user.CurrentLogin
+	user.CurrentLogin = &now
+	return s.repo.Update(ctx, user)
 }

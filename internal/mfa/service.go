@@ -11,9 +11,7 @@ func NewService() *Service {
 	return &Service{}
 }
 
-func (s *Service) GenerateKey(
-	username string,
-) (*otp.Key, error) {
+func (s *Service) GenerateKey(username string) (*otp.Key, error) {
 	return totp.Generate(
 		totp.GenerateOpts{
 			Issuer:      "CipherGate CLI",
@@ -22,27 +20,10 @@ func (s *Service) GenerateKey(
 	)
 }
 
-func (s *Service) Validate(
-	code string,
-	secret string,
-) bool {
-	return totp.Validate(
-		code,
-		secret,
-	)
-}
-
-func (s *Service) Verify(
-	code string,
-	secret *string,
-) bool {
-
+func (s *Service) Validate(code string, secret *string) bool {
 	if secret == nil {
 		return false
 	}
 
-	return totp.Validate(
-		code,
-		*secret,
-	)
+	return totp.Validate(code, *secret)
 }

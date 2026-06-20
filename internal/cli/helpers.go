@@ -6,25 +6,13 @@ import (
 	"strings"
 )
 
-func readInput(
-	prompt string,
-) (string, error) {
-
+func readInput(prompt string) (string, error) {
 	print(prompt)
-
-	reader := bufio.NewReader(
-		os.Stdin,
-	)
-
-	input, err := reader.ReadString(
-		'\n',
-	)
-
+	reader := bufio.NewReader(os.Stdin)
+	input, err := reader.ReadString('\n')
 	if err != nil {
 		return "", err
 	}
 
-	return strings.TrimSpace(
-		input,
-	), nil
+	return strings.TrimSpace(input), nil
 }

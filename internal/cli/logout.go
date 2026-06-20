@@ -8,34 +8,20 @@ import (
 	"github.com/shubhamranswal/ciphergate/internal/session"
 )
 
-func Logout(
-	authCtx *auth.Context,
-	sessionSvc *session.Service,
-) {
+func Logout(authCtx *auth.Context, sessionSvc *session.Service) {
 
 	if !authCtx.IsAuthenticated() {
-		fmt.Println(
-			"❌ No active session",
-		)
+		fmt.Println("❌ No active session")
 		return
 	}
 
-	err := sessionSvc.Deactivate(
-		context.Background(),
-		authCtx.Session.ID,
-	)
+	err := sessionSvc.Deactivate(context.Background(), authCtx.Session.ID)
 
 	if err != nil {
-		fmt.Printf(
-			"❌ %v\n",
-			err,
-		)
+		fmt.Printf("❌ %v\n", err)
 		return
 	}
 
 	authCtx.Logout()
-
-	fmt.Println(
-		"✅ Logged out successfully",
-	)
+	fmt.Println("✅ Logged out successfully")
 }
