@@ -209,7 +209,7 @@ CipherGate supports the following runtime configuration:
 
 ```bash
 git clone https://github.com/shubhamranswal/CipherGate.git
-cd ciphergate
+cd CipherGate
 ```
 
 ---
@@ -234,6 +234,10 @@ MAX_FAILED_ATTEMPTS=5
 ---
 
 ### Start PostgreSQL
+
+Ensure Docker Desktop (Windows/macOS) or the Docker daemon (Linux) is running before starting the database container.
+
+Start PostgreSQL:
 
 ```bash
 docker compose up -d
