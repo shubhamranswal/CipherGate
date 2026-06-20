@@ -142,11 +142,14 @@ ciphergate/
 │   │   ├── postgres_repository.go
 │   │   └── service.go
 │   │
-│   └── user/
-│       ├── model.go
-│       ├── repository.go
-│       ├── postgres_repository.go
-│       └── service.go
+│   ├── user/
+│   │    ├── model.go
+│   │    ├── repository.go
+│   │    ├── postgres_repository.go
+│   │    └── service.go
+│   │
+│   └── config/
+│        └── config.go
 │
 ├── migrations/
 │   ├── 000_schema_migrations.sql
@@ -176,6 +179,19 @@ ciphergate/
 | MFA                | TOTP                                           |
 | CLI                | Readline                                       |
 | Database Driver    | lib/pq                                         |
+
+---
+
+## Configuration
+
+CipherGate supports the following runtime configuration:
+
+| Variable                 | Default | Description                             |
+| ------------------------ | ------- | --------------------------------------- |
+| SESSION_TIMEOUT_MINUTES  | 30      | Session lifetime                        |
+| LOCKOUT_DURATION_MINUTES | 15      | Account lockout duration                |
+| MAX_FAILED_ATTEMPTS      | 5       | Failed password attempts before lockout |
+
 
 ---
 
@@ -209,6 +225,10 @@ DB_USER=admin
 DB_PASSWORD=admin
 DB_NAME=ciphergate
 DB_SSLMODE=disable
+
+SESSION_TIMEOUT_MINUTES=30
+LOCKOUT_DURATION_MINUTES=15
+MAX_FAILED_ATTEMPTS=5
 ```
 
 ---
@@ -438,7 +458,7 @@ sessions
 
 ## Session Management
 
-Default session timeout: 30 Minutes
+Default session timeout: 30 Minutes (configurable through SESSION_TIMEOUT_MINUTES)
 
 Expired sessions are automatically invalidated and require re-authentication.
 
