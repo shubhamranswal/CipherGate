@@ -7,6 +7,7 @@ import (
 	"github.com/chzyer/readline"
 
 	"github.com/shubhamranswal/ciphergate/internal/auth"
+	"github.com/shubhamranswal/ciphergate/internal/mfa"
 	"github.com/shubhamranswal/ciphergate/internal/session"
 	"github.com/shubhamranswal/ciphergate/internal/user"
 )
@@ -29,6 +30,7 @@ func getPrompt(
 func Run(
 	userService *user.Service,
 	sessionService *session.Service,
+	mfaService *mfa.Service,
 	authCtx *auth.Context,
 ) {
 
@@ -114,13 +116,17 @@ func Run(
 				)
 
 			case "enable-2fa":
-				fmt.Println(
-					"🚧 Coming soon",
+				Enable2FA(
+					authCtx,
+					userService,
+					mfaService,
 				)
 
 			case "disable-2fa":
-				fmt.Println(
-					"🚧 Coming soon",
+				Disable2FA(
+					authCtx,
+					userService,
+					mfaService,
 				)
 
 			case "help":
@@ -152,6 +158,8 @@ func Run(
 			case "login":
 				Login(
 					userService,
+					sessionService,
+					mfaService,
 					authCtx,
 				)
 

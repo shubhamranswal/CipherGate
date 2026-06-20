@@ -8,6 +8,7 @@ import (
 	"github.com/shubhamranswal/ciphergate/internal/auth"
 	"github.com/shubhamranswal/ciphergate/internal/cli"
 	"github.com/shubhamranswal/ciphergate/internal/database"
+	"github.com/shubhamranswal/ciphergate/internal/mfa"
 	"github.com/shubhamranswal/ciphergate/internal/migration"
 	"github.com/shubhamranswal/ciphergate/internal/session"
 	"github.com/shubhamranswal/ciphergate/internal/user"
@@ -64,11 +65,14 @@ func main() {
 		sessionService,
 	)
 
+	mfaService := mfa.NewService()
+
 	authCtx := &auth.Context{}
 
 	cli.Run(
 		userService,
 		sessionService,
+		mfaService,
 		authCtx,
 	)
 }

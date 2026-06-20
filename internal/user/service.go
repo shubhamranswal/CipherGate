@@ -16,6 +16,10 @@ const (
 	LockoutDuration   = 15 * time.Minute
 )
 
+var ErrMFARequired = errors.New(
+	"mfa required",
+)
+
 type Service struct {
 	repo       Repository
 	sessionSvc *session.Service
@@ -193,6 +197,10 @@ func (s *Service) Login(
 		return nil, nil, err
 	}
 
+	if user.MFAEnabled {
+		return user, nil, ErrMFARequired
+	}
+
 	sessionObj, err := s.sessionSvc.Create(
 		ctx,
 		user.ID,
@@ -203,4 +211,30 @@ func (s *Service) Login(
 	}
 
 	return user, sessionObj, nil
+}
+
+func (s *Service) Update(
+	ctx context.Context,
+	user *User,
+) error {
+
+	return s.repo.Update(
+		ctx,
+		user,
+	)
+}
+
+func (s *Service) UpdateLastLogin(
+	ctx context.Context,
+	user *User,
+) error {
+
+	now := time.Now().UTC()
+
+	user.LastLogin = &now
+
+	return s.repo.Update(
+		ctx,
+		user,
+	)
 }
