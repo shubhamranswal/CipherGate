@@ -182,7 +182,8 @@ func (s *Service) Login(
 
 	now := time.Now().UTC()
 
-	user.LastLogin = &now
+	user.LastLogin = user.CurrentLogin
+	user.CurrentLogin = &now
 
 	err = s.repo.Update(
 		ctx,

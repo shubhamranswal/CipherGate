@@ -13,6 +13,7 @@ type User struct {
 	FailedAttempts int
 	LockedUntil    *time.Time
 
-	CreatedAt time.Time
-	LastLogin *time.Time
+	CreatedAt    time.Time
+	CurrentLogin *time.Time
+	LastLogin    *time.Time
 }

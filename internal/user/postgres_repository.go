@@ -63,6 +63,7 @@ func (r *PostgresRepository) GetByUsername(
 		failed_attempts,
 		locked_until,
 		created_at,
+		current_login,
 		last_login
 	FROM users
 	WHERE username = $1
@@ -83,6 +84,7 @@ func (r *PostgresRepository) GetByUsername(
 		&user.FailedAttempts,
 		&user.LockedUntil,
 		&user.CreatedAt,
+		&user.CurrentLogin,
 		&user.LastLogin,
 	)
 
@@ -110,8 +112,9 @@ func (r *PostgresRepository) Update(
 		mfa_secret=$3,
 		failed_attempts=$4,
 		locked_until=$5,
-		last_login=$6
-	WHERE id=$7
+		last_login=$6,
+		current_login=$7
+	WHERE id=$8
 	`
 
 	_, err := r.db.ExecContext(
@@ -123,6 +126,7 @@ func (r *PostgresRepository) Update(
 		user.FailedAttempts,
 		user.LockedUntil,
 		user.LastLogin,
+		user.CurrentLogin,
 		user.ID,
 	)
 

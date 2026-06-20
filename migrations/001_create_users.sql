@@ -12,5 +12,6 @@ CREATE TABLE IF NOT EXISTS users (
     locked_until TIMESTAMPTZ,
     
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    current_login TIMESTAMPTZ,
     last_login TIMESTAMPTZ
 );
