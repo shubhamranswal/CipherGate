@@ -3,10 +3,13 @@ package cli
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/shubhamranswal/ciphergate/internal/auth"
 	"github.com/shubhamranswal/ciphergate/internal/mfa"
 	"github.com/shubhamranswal/ciphergate/internal/user"
+
+	"github.com/mdp/qrterminal/v3"
 )
 
 func Enable2FA(
@@ -33,7 +36,7 @@ func Enable2FA(
 		return
 	}
 
-	secret, err := mfaService.GenerateSecret(
+	key, err := mfaService.GenerateKey(
 		authCtx.User.Username,
 	)
 
@@ -47,17 +50,29 @@ func Enable2FA(
 		return
 	}
 
+	secret := key.Secret()
+
 	fmt.Println(
 		"\n🔐 MFA Setup",
 	)
 
 	fmt.Println(
-		"Add the following secret to Google Authenticator:",
+		"\nScan this QR code using Microsoft Authenticator or Google Authenticator:\n",
+	)
+
+	qrterminal.GenerateHalfBlock(
+		key.URL(),
+		qrterminal.L,
+		os.Stdout,
 	)
 
 	fmt.Printf(
-		"\n%s\n\n",
+		"\nSecret Key: %s\n",
 		secret,
+	)
+
+	fmt.Println(
+		"\nIf QR scanning fails, add the secret manually.",
 	)
 
 	code, err := readInput(

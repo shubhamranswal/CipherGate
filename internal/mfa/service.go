@@ -1,6 +1,9 @@
 package mfa
 
-import "github.com/pquerna/otp/totp"
+import (
+	"github.com/pquerna/otp"
+	"github.com/pquerna/otp/totp"
+)
 
 type Service struct{}
 
@@ -8,21 +11,15 @@ func NewService() *Service {
 	return &Service{}
 }
 
-func (s *Service) GenerateSecret(
+func (s *Service) GenerateKey(
 	username string,
-) (string, error) {
-	key, err := totp.Generate(
+) (*otp.Key, error) {
+	return totp.Generate(
 		totp.GenerateOpts{
-			Issuer:      "CipherGate",
+			Issuer:      "CipherGate CLI",
 			AccountName: username,
 		},
 	)
-
-	if err != nil {
-		return "", err
-	}
-
-	return key.Secret(), nil
 }
 
 func (s *Service) Validate(
