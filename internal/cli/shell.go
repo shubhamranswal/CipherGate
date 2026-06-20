@@ -100,6 +100,13 @@ func Run(
 
 		if authCtx.IsAuthenticated() {
 
+			if !ValidateSession(
+				authCtx,
+				sessionService,
+			) {
+				continue
+			}
+
 			switch command {
 
 			case "whoami":
