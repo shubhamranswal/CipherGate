@@ -1,5 +1,11 @@
 # CipherGate
 
+![Go](https://img.shields.io/badge/Go-1.24-blue)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue)
+![Docker](https://img.shields.io/badge/Docker-Enabled-blue)
+![MFA](https://img.shields.io/badge/MFA-TOTP-success)
+![License](https://img.shields.io/badge/License-MIT-green)
+
 A secure, containerized Command-Line Authentication System built with Go, PostgreSQL, Docker, and TOTP-based Multi-Factor Authentication (MFA).
 
 CipherGate provides user registration, authentication, session management, account lockout protection, and Google/Microsoft Authenticator compatible MFA through an interactive CLI experience.
@@ -85,6 +91,22 @@ CipherGate follows a layered architecture:
 
 ---
 
+## Screenshots
+
+### Application Startup
+
+![Application Startup](docs/image_startup.png)
+
+### MFA Enrollment
+
+![MFA Setup](docs/image_mfa.png)
+
+### Authenticated Session
+
+![WhoAmI](docs/image_whoami.png)
+
+---
+
 ## Project Structure
 
 ```text
@@ -131,6 +153,7 @@ ciphergate/
 │   ├── 001_create_users.sql
 │   └── 002_create_sessions.sql
 │
+├── docs/
 ├── .env
 ├── Dockerfile
 ├── docker-compose.yml
@@ -215,6 +238,22 @@ Expected startup:
 ```text
 🔐 CipherGate v0.1
 ✅ Connected to PostgreSQL
+```
+
+---
+
+### Build
+
+```bash
+go build -o ciphergate .
+```
+
+---
+
+### Run Tests
+
+```bash
+go test ./...
 ```
 
 ---
