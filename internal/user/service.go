@@ -95,11 +95,14 @@ func (s *Service) Login(ctx context.Context, username string, password string) (
 		return nil, nil, errors.New("invalid username or password")
 	}
 
-	if user.LockedUntil != nil &&
-		time.Now().Before(*user.LockedUntil) {
-
-		return nil, nil,
-			fmt.Errorf("account locked until %s", user.LockedUntil.Format("2006-01-02 15:04:05 UTC"))
+	if user.LockedUntil != nil {
+		if time.Now().UTC().Before(*user.LockedUntil) {
+			return nil, nil, fmt.Errorf("account locked until %s", user.LockedUntil.Format("2006-01-02 15:04:05 UTC"))
+		}
+		user.LockedUntil = nil
+		if err := s.repo.Update(ctx, user); err != nil {
+			return nil, nil, err
+		}
 	}
 
 	err = bcrypt.CompareHashAndPassword(
