@@ -7,13 +7,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shubhamranswal/ciphergate/internal/config"
 	"github.com/shubhamranswal/ciphergate/internal/session"
 	"golang.org/x/crypto/bcrypt"
-)
-
-const (
-	MaxFailedAttempts = 5
-	LockoutDuration   = 15 * time.Minute
 )
 
 var ErrMFARequired = errors.New("mfa required")
@@ -91,7 +87,6 @@ func (s *Service) ValidatePassword(password string) error {
 func (s *Service) Login(ctx context.Context, username string, password string) (*User, *session.Session, error) {
 
 	user, err := s.repo.GetByUsername(ctx, username)
-
 	if err != nil {
 		return nil, nil, err
 	}
@@ -104,10 +99,7 @@ func (s *Service) Login(ctx context.Context, username string, password string) (
 		time.Now().Before(*user.LockedUntil) {
 
 		return nil, nil,
-			fmt.Errorf(
-				"account locked until %s",
-				user.LockedUntil.Format("2006-01-02 15:04:05 UTC"),
-			)
+			fmt.Errorf("account locked until %s", user.LockedUntil.Format("2006-01-02 15:04:05 UTC"))
 	}
 
 	err = bcrypt.CompareHashAndPassword(
@@ -117,14 +109,20 @@ func (s *Service) Login(ctx context.Context, username string, password string) (
 
 	if err != nil {
 		user.FailedAttempts++
-		if user.FailedAttempts >= MaxFailedAttempts {
-			lockUntil := time.Now().UTC().Add(LockoutDuration)
+		locked := false
+		if user.FailedAttempts >= config.MaxFailedAttempts {
+			lockUntil := time.Now().UTC().Add(config.LockoutDuration)
 			user.LockedUntil = &lockUntil
 			user.FailedAttempts = 0
+			locked = true
 		}
 
 		if updateErr := s.repo.Update(ctx, user); updateErr != nil {
 			return nil, nil, updateErr
+		}
+
+		if locked {
+			return nil, nil, fmt.Errorf("account locked until %s", user.LockedUntil.Format("2006-01-02 15:04:05 UTC"))
 		}
 
 		return nil, nil, errors.New("invalid username or password")

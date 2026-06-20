@@ -6,9 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shubhamranswal/ciphergate/internal/config"
 )
-
-const SessionTimeout = 30 * time.Minute
 
 type Service struct {
 	repo Repository
@@ -25,7 +24,7 @@ func (s *Service) Create(ctx context.Context, userID string) (*Session, error) {
 		ID:        uuid.New().String(),
 		UserID:    userID,
 		CreatedAt: now,
-		ExpiresAt: now.Add(SessionTimeout),
+		ExpiresAt: now.Add(config.SessionTimeout),
 		Active:    true,
 	}
 

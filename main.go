@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/shubhamranswal/ciphergate/internal/auth"
 	"github.com/shubhamranswal/ciphergate/internal/cli"
+	"github.com/shubhamranswal/ciphergate/internal/config"
 	"github.com/shubhamranswal/ciphergate/internal/database"
 	"github.com/shubhamranswal/ciphergate/internal/mfa"
 	"github.com/shubhamranswal/ciphergate/internal/migration"
@@ -31,6 +32,8 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
 	}
+
+	config.Load()
 
 	db, err := database.Connect()
 	if err != nil {
